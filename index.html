@@ -47,7 +47,6 @@
   button:disabled{opacity:.55;cursor:not-allowed}
   button.big{width:100%;padding:17px;font-size:1.15rem}
   button.oncall{background:var(--green);color:#0a0a0b}
-  #wordsYesBtn{background:var(--green);color:#0a0a0b}
   input[type=text]{width:100%;padding:15px 16px;border:2px solid #f2f2ed;border-radius:0;font-size:1.05rem;min-height:60px;background:#0a0a0b;color:var(--ink);font-family:var(--font-body)}
   input[type=text]::placeholder{color:#777}
   input[type=text]:focus-visible{outline:3px solid var(--yellow);outline-offset:2px;border-color:var(--yellow)}
@@ -77,6 +76,10 @@
   .bar>div{height:100%;background:#0a0a0b;width:100%}
   .chips{display:flex;gap:10px;overflow-x:auto;padding:4px 2px 10px}
   .empty-invite{background:#111;border:2px solid var(--yellow);border-radius:0;padding:20px;text-align:center;box-shadow:4px 4px 0 var(--yellow);overflow:hidden}
+  .name-prompt{background:#111;border:2px solid var(--yellow);padding:18px;box-shadow:4px 4px 0 var(--yellow)}
+  .pending-item{background:#111;border:2px solid #f2f2ed;padding:14px;margin-bottom:12px}
+  .pending-item .big-text{margin:0 0 8px}
+  .name-prompt .big-text{margin:0 0 8px}
   .empty-invite p{margin:8px 0}
   .empty-invite button{width:100%}
   .invite-link-box{background:#0a0a0b;padding:14px;border:2px solid #f2f2ed;border-radius:0;word-break:break-all;overflow-wrap:anywhere;font-size:.95rem;line-height:1.5;color:var(--ink);font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
@@ -86,8 +89,6 @@
   .chip.selected .avatar{background:#0a0a0b;color:var(--yellow)}
   .chip .dot{width:10px;height:10px;border-radius:0;background:#94a3b8}
   .chip .dot.green{background:var(--green)}
-  .action-bar{margin-top:auto;padding-top:6px}
-  .action-label{font-family:var(--font-display);font-size:1.15rem;font-weight:800;margin:0 0 12px;text-align:center;text-transform:uppercase}
   .action-row{display:flex;gap:12px}
   .action-row>*{flex:1}
   .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
@@ -124,23 +125,44 @@
     <p class="sub">Before you share anything important on a call, check in seconds. No account.</p>
     <label for="nameInput">What should they call you? (optional)</label>
     <input id="nameInput" type="text" placeholder="e.g. Alex" autocomplete="name">
-    <button id="saveNameBtn" class="secondary hidden">Save name</button>
     <button id="createBtn" class="big">Start a trusted group</button>
     <p class="divider">or</p>
     <label for="joinInput">Join with an invite</label>
-    <input id="joinInput" type="text" placeholder="Paste the invite link or code someone sent you">
+    <input id="joinInput" type="text" placeholder="Paste the invite link someone sent you">
     <button id="joinBtn" class="secondary big">Join this group</button>
     <p class="small" id="joinMsg"></p>
-    <p class="small">Treat an invite like a house key. Only use one from someone you trust.</p>
+    <p class="small">An invite link only lets someone ask to join. They only get in when someone in the group approves them. Only use a link from someone you trust.</p>
+  </section>
+
+  <section id="requestCard" class="view hidden" aria-label="Request to join">
+    <p class="eyebrow">Join request</p>
+    <h1 class="setup-title">Ask to join?</h1>
+    <p class="sub">This link alone does not let you in. Someone in the group must approve you first. Forwarding this link alone lets no one in.</p>
+    <label for="requestNameInput">What should they call you?</label>
+    <input id="requestNameInput" type="text" placeholder="e.g. Alex" autocomplete="name">
+    <button id="requestBtn" class="big">Request to join</button>
+    <p class="small" id="requestMsg"></p>
+    <button id="requestCancelBtn" class="secondary big">Back to setup</button>
   </section>
 
   <div id="confirmStage" class="view hidden">
     <section id="circleCard" class="stage">
+      <div id="namePrompt" class="name-prompt hidden">
+        <p class="eyebrow">First, your name</p>
+        <p class="big-text">What should they call you?</p>
+        <label for="promptNameInput">Your name</label>
+        <input id="promptNameInput" type="text" placeholder="e.g. Alex" autocomplete="name">
+        <div class="action-row">
+          <button id="promptSaveBtn">Save name</button>
+          <button id="promptSkipBtn" class="secondary">Skip for now</button>
+        </div>
+        <p class="small">This is the name your group will see. You can change it later in Settings.</p>
+      </div>
       <div class="trust-hero">
         <div id="trustShield" class="shield amber" aria-hidden="true">?</div>
         <div>
-          <p class="eyebrow">Trust check</p>
-          <div id="verdict" class="verdict amber">Not verified yet.</div>
+          <p class="eyebrow">Live check</p>
+          <div id="verdict" class="verdict amber">Waiting for someone to join.</div>
         </div>
       </div>
       <div class="words-card">
@@ -148,39 +170,30 @@
         <div class="phrase" id="phraseText">— —</div>
         <div class="bar"><div id="phraseBar"></div></div>
         <p class="words-note"><span id="phraseCountdown"></span></p>
+        <p class="small" style="color:#333;text-align:center;margin:8px 0 0">If they say different words: do not share passwords, codes, or send money. Hang up and call them back on a number you already know.</p>
       </div>
       <div>
         <p class="eyebrow">Talking to</p>
         <div id="membersList" class="chips"><p class="small">Waiting for people to join…</p></div>
       </div>
-      <button id="callBtn" class="hidden">I'm on a call now</button>
-      <p class="small hidden" id="callMsg"></p>
+      <div id="pendingCard" class="hidden">
+        <p class="eyebrow">People asking to join</p>
+        <p class="small">Only approve people you know. Approving gives them the group's secret words.</p>
+        <div id="pendingList"></div>
+      </div>
     </section>
 
-    <section id="verifyCard" class="action-bar">
-      <div id="wordsStep">
-        <p class="action-label">Did they say these words?</p>
-        <div class="action-row">
-          <button id="wordsYesBtn">Yes, same words</button>
-          <button id="wordsNoBtn" class="secondary">No, different</button>
-        </div>
-      </div>
-      <p class="small" id="challengeMsg"></p>
-      <p class="small">If it's not green: do not share passwords, codes, or send money. Hang up and call them back on a number you already know.</p>
-      <div class="hidden">
-        <span id="selectedName">—</span>
-        <input type="checkbox" id="phraseCheck" aria-label="They said the same secret words">
-        <span id="liveCheckText"></span>
-        <span id="challengeCheckText"></span>
-        <button id="challengeBtn">Check this person</button>
-      </div>
-    </section>
   </div>
 
   <div id="advancedDetails" class="sheet hidden">
     <div class="sheet-card">
       <div class="sheet-header"><h2>Settings</h2><button id="settingsCloseBtn" class="icon-btn" aria-label="Close settings">✕</button></div>
 <div class="advanced-body">
+      <h3>Your name</h3>
+      <p class="small">This is the name your group sees.</p>
+      <input id="settingsNameInput" type="text" placeholder="e.g. Alex" autocomplete="name">
+      <button id="settingsSaveNameBtn" class="secondary big">Save name</button>
+
       <h3>Invite someone</h3>
       <p class="small">Send this to someone you trust, through a channel you already trust.</p>
       <button id="copyLinkBtn" class="big">Copy invite link</button>
@@ -204,12 +217,14 @@
 
       <h3>What this does — and doesn't — prove</h3>
       <ul>
-        <li><strong>It proves:</strong> the other phone is in your group and just answered a fresh check.</li>
-        <li><strong>It doesn't prove:</strong> who someone is outside your group, or a government ID. You still have to trust the invite step.</li>
-        <li><strong>If someone gets your invite and your phone, they can pass.</strong> That's why an invite must come from someone you trust, and why a leaked group should be replaced, not reused.</li>
+        <li><strong>It shows:</strong> the secret words for this minute, and whether the other person is on this screen right now. You compare the words yourself — there is no tap to confirm.</li>
+        <li><strong>If they say different words:</strong> do not share passwords, codes, or send money. Hang up and call them back on a number you already know.</li>
+        <li><strong>It doesn't prove:</strong> who someone is outside your group, or a government ID. You still have to trust the approval step.</li>
+        <li><strong>An invite link alone does not let anyone in.</strong> Someone in the group must approve each request. Only approve people you know.</li>
+        <li><strong>If a group's secret ever leaks, make a new group.</strong> A leaked secret should be replaced, not reused.</li>
         <li><strong>“No signal” just means not verified yet.</strong> The person may be offline or not on this screen.</li>
       </ul>
-      <p class="small muted">Stupid Trust · Version 13</p>
+      <p class="small muted">Stupid Trust · Version 17</p>
     </div>
     </div>
   </div>
@@ -220,7 +235,7 @@
       <p class="big-text">Here's your private invite link.</p>
       <div class="invite-link-box" id="inviteLinkOut"></div>
       <button id="inviteCopyBtn" class="big">Copy invite link</button>
-      <p class="small">Send it through a channel you already trust — a text or message to someone you know. That trusted channel is what keeps this group private. Anyone with this link can join.</p>
+      <p class="small">Send it through a channel you already trust — a text or message to someone you know. Anyone with this link can only ask to join. They get in only when someone in the group approves them.</p>
     </div>
   </div>
 
@@ -239,36 +254,34 @@ const PEER = 'https://castrater.xyz/gun';
 const WORDS = ("MANGO ROCKET ZEBRA ANCHOR TULIP SHADOW CRATER MARBLE BANJO COBALT DRAGON ECHO FALCON GUITAR HARBOR IVORY JUNGLE KETTLE LEMON MEADOW NICKEL OPAL PIANO QUARTZ RAVEN SADDLE TIGER UMBER VELVET WALNUT YELLOW ZIPPER APRICOT BICYCLE CANYON DOLPHIN EMBER FROST GALAXY HAZEL INK JASPER KOALA LAGOON MAGNET NIGHT OCTOPUS PENGUIN QUIVER RAINBOW SAPPHIRE TEMPLE URCHIN VOYAGE WILLOW XENON YOGA ZINC ALMOND BEACON CEDAR DIAMOND EAGLE FLUTE GARDEN HELMET ISLAND JUPITER KANGAROO LANTERN MAPLE NECTAR ORCHID PUMPKIN QUAIL RIVER STORM THUNDER UMBRELLA VIOLIN WANDER YAK ZODIAC ASTER BRIDGE CORAL DESERT ELM FERN GLACIER HONEY IRIS JADE KITE LILAC MIST NOVA ORBIT PLUTO QUINCE RIDDLE SABLE TOPAZ ULTRA VENUS WREN YARROW ZEPHYR ACORN BISON CLOVER DENIM EMERALD FIR GROVE HAWK INDIGO JUNIPER KESTREL LARK MOSAIC NARWHAL ONYX PINE QUEST RIDGE SORREL TUNDRA URSA VISTA WOLF YEW ZENITH AMBER BASALT CYPRESS DUNE ECLIPSE FABLE GROTTO HARVEST INLET JUBILEE KILN LAVA ORCA PEARL QUILL ROSEWOOD SIERRA TANDEM UPLAND VORTEX WHEAT YONDER ZIGZAG ATLAS BLAZE COMET DUSK FLINT GRANITE HOLLOW IVY JEWEL KELP LOCUST MYRTLE NUTMEG OCHRE POPLAR QUARRY RYE SEQUOIA TIMBER WALRUS ACACIA BREEZE CLIFF DRIFT EDDY FJORD GEYSER HICKORY ICEBERG JETTY LODESTAR MERLIN NIGHTINGALE OSPREY PEREGRINE QUETZAL REDWOOD SANDSTONE TERRACE VALLEY WISTERIA ZIRCON AURORA BERYL CARNELIAN DANDELION ELDERBERRY FOXGLOVE GINGER HYACINTH IRONWOOD JUNCO KUDZU LUPINE MAGNOLIA NASTURTIUM OLEANDER PEONY QUINOA RHODODENDRON SAGE THYME VERBENA WOODRUFF YUCCA ZINNIA ALDER BIRCH CHESTNUT DOGWOOD MANDOLIN OBOE CELLO VIOLA TRUMPET CLARINET ACCORDION BAGPIPE DULCIMER HARMONICA MARIMBA PANPIPE SAXOPHONE TROMBONE ANVIL BELLOWS CHISEL FORGE HAMMER MALLET PULLEY WRENCH AXLE BEARING COMPASS DYNAMO ENGINE GEAR LEVER PISTON").split(" ");
 
 const $ = id => document.getElementById(id);
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 function toast(msg){ const t=$('toast'); t.textContent=msg; t.classList.remove('hidden'); setTimeout(()=>t.classList.add('hidden'), 6000); }
 function b64u(bytes){ let s=''; for(const b of bytes) s+=String.fromCharCode(b); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function b64uDecode(str){ const s=str.replace(/-/g,'+').replace(/_/g,'/'); const pad='='.repeat((4 - s.length % 4) % 4); const bin=atob(s+pad); const out=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i); return out; }
 function randomBytes(n){ const a=new Uint8Array(n); crypto.getRandomValues(a); return a; }
-function randomHex(n){ return Array.from(randomBytes(n), b=>b.toString(16).padStart(2,'0')).join(''); }
-function shortPub(pub){ return pub ? pub.slice(0,10)+'…'+pub.slice(-6) : '—'; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 let gun=null, SEA=null, devicePair=null, displayName='';
 let circle=null; // {id, secret}
 let members=new Map(); // pub -> {pub,name,lastSeen,lastSeq,lastOnCall,lastTs}
+let pendingInvite=null; // {id, inviterPub}
+let pendingRequest=null; // {circleId, inviterPub, at}
+let pendingRequests=new Map(); // pub -> {pub, epub, name, at}
 let selectedPub=null, onCall=false, heartbeatTimer=null, seq=0;
-let seenChallengeIds=new Set(), outstanding=null, challengePassedAt=0, challengePassedFor=null;
-let phraseMatches=false;
 
-// Two screens only: Setup (setupCard) and Confirm Trust (circleCard + verifyCard).
-// Setup is shown once; Confirm Trust is the everyday screen.
+// Screens: Setup, Request to join, Confirm.
+// Setup is shown once; Confirm is the everyday screen.
 function finishWizard(){
   const s = $('setupCard');
   if (s) s.classList.add('hidden');
 }
 function openWizard(){
+  const rc = $('requestCard'); if (rc) rc.classList.add('hidden');
   const s = $('setupCard');
   if (s) s.classList.remove('hidden');
   const cs2 = $('confirmStage'); if (cs2) cs2.classList.add('hidden');
   const sb = $('settingsBtn'); if (sb) sb.classList.add('hidden');
   const sh = $('advancedDetails'); if (sh) sh.classList.add('hidden');
   const c = $('circleCard'); if (c) c.classList.add('hidden');
-  const v = $('verifyCard'); if (v) v.classList.add('hidden');
   try { if (s) s.scrollIntoView({behavior: 'smooth', block: 'start'}); } catch (e) {}
 }
 async function startAutoSignal(){
@@ -286,35 +299,9 @@ async function stopAutoSignal(){
   await sendHeartbeat(false);
 }
 function selectPerson(pub){
-  const changing = selectedPub !== null && selectedPub !== pub;
-  if (selectedPub === pub && !changing) return;
   selectedPub = pub;
-  if (changing || phraseMatches || challengePassedFor) {
-    phraseMatches = false; challengePassedFor = null; outstanding = null;
-    const cm = $('challengeMsg'); if (cm) cm.textContent = '';
-  }
-  const m = members.get(pub);
-  const sn = $('selectedName'); if (sn) sn.textContent = m ? m.name : 'Someone';
-  const v = $('verifyCard'); if (v) v.classList.remove('hidden');
   renderMembers();
 }
-async function runChallenge(){
-  if(!selectedPub){ const cm = $('challengeMsg'); if (cm) cm.textContent='Pick a person above first.'; return; }
-  if(!circle) return;
-  if(outstanding && outstanding.toPub === selectedPub) return;
-  const nonce = randomHex(16), id = b64u(randomBytes(12));
-  outstanding = {nonce, id, toPub:selectedPub, expires:Date.now()+25000};
-  const cm = $('challengeMsg'); if (cm) cm.textContent='Checking their phone — please wait…';
-  try{
-    const payload = {v:1, type:'challenge', nonce, id, from:devicePair.pub, to:selectedPub, ts:Date.now()};
-    const signed = await SEA.sign(payload, devicePair);
-    const enc = await SEA.encrypt(signed, circle.secret);
-    circleRef().get('challenges').get(selectedPub).put({enc, at:Date.now()});
-  }catch(e){ const m2 = $('challengeMsg'); if (m2) m2.textContent='Check failed to send. Check the connection and try again.'; outstanding=null; return; }
-  setTimeout(()=>{ if(outstanding && outstanding.id===id){ outstanding=null; const m3 = $('challengeMsg'); if (m3) m3.textContent='Their phone did not answer in time. Treat this as not verified.'; renderVerdict(); } }, 25000);
-  renderVerdict();
-}
-
 async function loadOrCreateDevice(){
   try{ const raw=localStorage.getItem('safecall.device.v1'); if(raw){ const p=JSON.parse(raw); if(p && p.pub && p.priv) return p; } }catch(e){}
   const p = await SEA.pair();
@@ -326,11 +313,6 @@ function saveName(n){ displayName=n; try{ localStorage.setItem('safecall.name.v1
 function seqKey(){ return 'safecall.seq.'+circle.id; }
 function loadSeq(){ try{ return parseInt(localStorage.getItem(seqKey())||'0',10)||0; }catch(e){ return 0; } }
 function saveSeq(){ try{ localStorage.setItem(seqKey(), String(seq)); }catch(e){} }
-
-function setPeer(connected){
-  // No status pill in the UI anymore — connection state is not shown to the user.
-  return;
-}
 
 async function currentPhrase(){
   if(!circle) return '— —';
@@ -360,9 +342,8 @@ async function refreshPhrase(){
 function circleRef(){ return gun.get('safecall-v1-circles').get(circle.id); }
 function inviteLink(){
   const base = location.href.split('#')[0];
-  return base + '#c=' + encodeURIComponent(circle.id) + '&s=' + encodeURIComponent(circle.secret);
+  return base + '#c=' + encodeURIComponent(circle.id) + '&i=' + encodeURIComponent(devicePair.pub);
 }
-function inviteCode(){ return circle.id + '.' + circle.secret; }
 
 async function announceMember(){
   if(!circle || !devicePair) return;
@@ -424,43 +405,6 @@ function handleMember(data, key){
     }catch(e){}
   })();
 }
-async function handleChallenge(data){
-  if(!data || !data.enc || !circle || !devicePair) return;
-  try{
-    const signed = await SEA.decrypt(data.enc, circle.secret);
-    if(!signed) return;
-    const candidates = Array.from(members.keys()).filter(p=>p!==devicePair.pub);
-    const checked = await verifySigned(signed, candidates);
-    if(!checked) return;
-    const p = checked.data;
-    if(!p || p.type!=='challenge' || p.to!==devicePair.pub) return;
-    if(typeof p.ts!=='number' || Math.abs(Date.now()-p.ts) > 60000) return;
-    if(seenChallengeIds.has(p.id)) return;
-    seenChallengeIds.add(p.id);
-    const reply = {v:1, type:'response', nonce:p.nonce, id:p.id, from:devicePair.pub, to:p.from, ts:Date.now()};
-    const rsigned = await SEA.sign(reply, devicePair);
-    const renc = await SEA.encrypt(rsigned, circle.secret);
-    circleRef().get('responses').get(p.from).put({enc:renc, at:Date.now()});
-    const fromName = members.get(p.from)?.name || 'A circle member';
-    toast('Check from '+fromName+' — replied automatically.');
-  }catch(e){}
-}
-async function handleResponse(data){
-  if(!data || !data.enc || !circle || !outstanding) return;
-  try{
-    const signed = await SEA.decrypt(data.enc, circle.secret);
-    if(!signed) return;
-    const checked = await verifySigned(signed, [outstanding.toPub]);
-    if(!checked) return;
-    const p = checked.data;
-    if(!p || p.type!=='response' || p.nonce!==outstanding.nonce || p.id!==outstanding.id || p.from!==outstanding.toPub) return;
-    if(typeof p.ts!=='number' || Math.abs(Date.now()-p.ts) > 60000) return;
-    challengePassedAt = Date.now(); challengePassedFor = outstanding.toPub; outstanding = null;
-    $('challengeMsg').textContent = 'Check passed just now. This stays valid for 2 minutes.';
-    renderMembers();
-  }catch(e){}
-}
-
 function liveState(m){
   if(!m || !m.lastSeen) return {ok:false, text:'No recent check yet.'};
   const age = Date.now() - m.lastSeen;
@@ -469,12 +413,11 @@ function liveState(m){
   return {ok:false, text:'No recent check in the last '+Math.floor(age/1000)+'s — they may be offline or not on this screen.'};
 }
 function renderMembers(){
+  renderPending();
   const list = $('membersList');
   const others = Array.from(members.values()).filter(m=>m.pub!==devicePair.pub);
   if(!others.length){
     selectedPub = null;
-    const sn = $('selectedName'); if (sn) sn.textContent = '—';
-    const vc = $('verifyCard'); if (vc) vc.classList.add('hidden');
     list.innerHTML = '<div class="empty-invite"><p class="big-text">No one here yet.</p><p>Send your private invite link to someone you trust. When they join, they will appear here.</p><button id="emptyInviteBtn" class="big">Invite someone</button></div>';
     const eb = $('emptyInviteBtn'); if (eb) eb.addEventListener('click', ()=>{ openInviteSheet(); });
     renderVerdict();
@@ -485,8 +428,6 @@ function renderMembers(){
     if(selectedPub !== only.pub){ selectPerson(only.pub); return; }
     const live = liveState(only);
     list.innerHTML = '<button class="chip selected" data-pub="'+esc(only.pub)+'"><span class="avatar">'+esc((only.name||'S').slice(0,1).toUpperCase())+'</span><span>'+esc(only.name)+'</span><span class="dot '+(live.ok?'green':'')+'"></span></button>';
-    const sn = $('selectedName'); if (sn) sn.textContent = only.name;
-    const vc1 = $('verifyCard'); if (vc1) vc1.classList.remove('hidden');
     list.querySelectorAll('.chip[data-pub]').forEach(el=>{ el.addEventListener('click', ()=>{ selectPerson(el.getAttribute('data-pub')); }); });
     renderVerdict();
     return;
@@ -498,47 +439,144 @@ function renderMembers(){
   }
   list.innerHTML = html;
   list.querySelectorAll('.chip[data-pub]').forEach(el=>{ el.addEventListener('click', ()=>{ selectPerson(el.getAttribute('data-pub')); }); });
-  const sn = $('selectedName'); if (sn) sn.textContent = selectedPub && members.get(selectedPub) ? members.get(selectedPub).name : '—';
-  const vc2 = $('verifyCard'); if (vc2) { if (selectedPub && members.get(selectedPub)) vc2.classList.remove('hidden'); else vc2.classList.add('hidden'); }
   renderVerdict();
 }
 function renderVerdict(){
   const vEl = $('verdict');
   const m = selectedPub ? members.get(selectedPub) : null;
-  if(!selectedPub || !m){ vEl.className='verdict amber'; vEl.textContent='Not verified yet — waiting for someone to join.'; return; }
+  const sh = $('trustShield');
+  if(!selectedPub || !m){ vEl.className='verdict amber'; vEl.textContent='Waiting for someone to join.'; if (sh) { sh.className='shield amber'; sh.textContent='?'; } return; }
   const live = liveState(m);
-  const chalOk = challengePassedFor===selectedPub && Date.now()-challengePassedAt < 120000;
-  const lt = $('liveCheckText'); if (lt) lt.textContent = live.text;
-  const ct = $('challengeCheckText'); if (ct) ct.textContent = chalOk ? 'Passed.' : (outstanding && outstanding.toPub===selectedPub ? 'Waiting for a reply…' : 'No check passed yet.');
-  const pc = $('phraseCheck'); if (pc) pc.checked = phraseMatches;
-  const verified = phraseMatches && !outstanding && live.ok && chalOk;
-  if(!phraseMatches){ vEl.className='verdict amber'; vEl.textContent='Not verified yet — ask them to say the secret words, then tap Yes, same words.'; }
-  else if(outstanding){ vEl.className='verdict amber'; vEl.textContent='Checking their phone… please wait.'; }
-  else if(!live.ok){ vEl.className='verdict amber'; vEl.textContent='Not verified yet — their phone is not answering right now.'; }
-  else if(!chalOk){ vEl.className='verdict amber'; vEl.textContent='Not verified yet — the fresh check has not passed.'; }
-  else { vEl.className='verdict green'; vEl.textContent='✓ It\'s really them.'; }
-  const sh = $('trustShield'); if (sh) { sh.className = 'shield ' + (verified ? 'green' : 'amber'); sh.textContent = verified ? '✓' : '?'; }
+  if(live.ok){ vEl.className='verdict green'; vEl.textContent='They are on this screen right now.'; if (sh) { sh.className='shield green'; sh.textContent='✓'; } }
+  else { vEl.className='verdict amber'; vEl.textContent=live.text; if (sh) { sh.className='shield amber'; sh.textContent='?'; } }
 }
 
 function showCircle(){
   finishWizard();
+  const rc = $('requestCard'); if (rc) rc.classList.add('hidden');
   $('setupCard').classList.add('hidden');
   const cs2 = $('confirmStage'); if (cs2) cs2.classList.remove('hidden');
   const sb = $('settingsBtn'); if (sb) sb.classList.remove('hidden');
   const sh = $('advancedDetails'); if (sh) sh.classList.add('hidden');
   $('circleCard').classList.remove('hidden');
-  $('verifyCard').classList.remove('hidden');
-  phraseMatches = false; challengePassedFor = null; outstanding = null;
   refreshPhrase();
   startAutoSignal();
+  updateNamePrompt();
+}
+function pendingRef(circleId){ return gun.get('safecall-v1-circles').get(circleId); }
+function showRequestScreen(invite){
+  pendingInvite = invite;
+  const s = $('setupCard'); if (s) s.classList.add('hidden');
+  const cs2 = $('confirmStage'); if (cs2) cs2.classList.add('hidden');
+  const rc = $('requestCard'); if (rc) rc.classList.remove('hidden');
+  const rni = $('requestNameInput'); if (rni) rni.value = displayName || '';
+  const rm = $('requestMsg'); if (rm && !pendingRequest) rm.textContent = '';
+  const rb = $('requestBtn'); if (rb) rb.disabled = false;
+}
+function renderPending(){
+  const pc = $('pendingCard'); if (!pc) return;
+  const list = $('pendingList'); if (!list) return;
+  const items = Array.from(pendingRequests.values()).filter(r=>!members.has(r.pub));
+  if (!circle || !items.length){ pc.classList.add('hidden'); list.innerHTML=''; return; }
+  pc.classList.remove('hidden');
+  let html='';
+  for(const r of items){
+    html += '<div class="pending-item"><p class="big-text">'+esc(r.name||'Someone')+'</p><p class="small">Wants to join this group.</p><div class="action-row"><button data-approve="'+esc(r.pub)+'">Approve</button><button class="secondary" data-decline="'+esc(r.pub)+'">Decline</button></div></div>';
+  }
+  list.innerHTML = html;
+  list.querySelectorAll('[data-approve]').forEach(el=>el.addEventListener('click', ()=>approveRequest(el.getAttribute('data-approve'))));
+  list.querySelectorAll('[data-decline]').forEach(el=>el.addEventListener('click', ()=>declineRequest(el.getAttribute('data-decline'))));
+}
+function handleRequest(data, key){
+  if(!data || !data.pub || !data.epub || !data.sig || !circle) return;
+  (async()=>{
+    try{
+      const v = await SEA.verify(data.sig, data.pub);
+      if(!v || v.type!=='request' || v.pub!==data.pub || v.circle!==circle.id) return;
+      pendingRequests.set(data.pub, {pub:data.pub, epub:data.epub, name:v.name||data.name||'Someone', at:data.at||Date.now()});
+      renderPending();
+    }catch(e){}
+  })();
+}
+async function approveRequest(pub){
+  const req = pendingRequests.get(pub);
+  if(!req || !circle || !devicePair) return;
+  if(!devicePair.epub || !req.epub){ toast('Approval failed — missing encryption key.'); return; }
+  try{
+    const shared = await SEA.secret(req.epub, devicePair);
+    const enc = await SEA.encrypt(circle.secret, shared);
+    const payload = {v:1, type:'approval', circle:circle.id, to:pub, enc, from:devicePair.pub, fromEpub:devicePair.epub, at:Date.now()};
+    const sig = await SEA.sign(payload, devicePair);
+    await new Promise(res=>{ circleRef().get('approvals').get(pub).put({enc, from:devicePair.pub, fromEpub:devicePair.epub, at:payload.at, sig}, ()=>res()); setTimeout(res, 1500); });
+    pendingRequests.delete(pub); renderPending();
+    toast('Approved '+req.name+'.');
+  }catch(e){ toast('Approval failed. Try again.'); }
+}
+async function declineRequest(pub){
+  const req = pendingRequests.get(pub);
+  if(!req || !circle || !devicePair) return;
+  try{
+    const payload = {v:1, type:'decline', circle:circle.id, to:pub, from:devicePair.pub, at:Date.now()};
+    const sig = await SEA.sign(payload, devicePair);
+    await new Promise(res=>{ circleRef().get('declines').get(pub).put({from:devicePair.pub, at:payload.at, sig}, ()=>res()); setTimeout(res, 1500); });
+    pendingRequests.delete(pub); renderPending();
+    toast('Declined '+req.name+'.');
+  }catch(e){ toast('Decline failed. Try again.'); }
+}
+function subscribePending(circleId){
+  if(!gun || !devicePair) return;
+  pendingRef(circleId).get('approvals').get(devicePair.pub).on(handleApproval);
+  pendingRef(circleId).get('declines').get(devicePair.pub).on(handleDecline);
+}
+async function handleApproval(data){
+  if(!data || !data.enc || !data.from || !data.fromEpub || !data.sig || !pendingRequest) return;
+  try{
+    const v = await SEA.verify(data.sig, data.from);
+    if(!v || v.type!=='approval' || v.circle!==pendingRequest.circleId || v.to!==devicePair.pub) return;
+    if(!devicePair.epub){ const rm=$('requestMsg'); if(rm) rm.textContent='Approval arrived, but this device is missing its encryption key.'; return; }
+    const shared = await SEA.secret(data.fromEpub, devicePair);
+    const secret = await SEA.decrypt(data.enc, shared);
+    if(!secret || typeof secret!=='string') return;
+    const cid = pendingRequest.circleId;
+    pendingRequest = null;
+    try{ localStorage.removeItem('safecall.pending.v1'); }catch(e){}
+    toast('Approved — welcome to the group.');
+    await joinCircle(cid, secret);
+  }catch(e){}
+}
+async function handleDecline(data){
+  if(!data || !data.from || !data.sig || !pendingRequest) return;
+  try{
+    const v = await SEA.verify(data.sig, data.from);
+    if(!v || v.type!=='decline' || v.circle!==pendingRequest.circleId || v.to!==devicePair.pub) return;
+    const rm = $('requestMsg'); if (rm) rm.textContent='Declined. Ask someone in the group for a new invite, or try requesting again.';
+    const rb = $('requestBtn'); if (rb) rb.disabled = false;
+  }catch(e){}
+}
+async function sendJoinRequest(){
+  if(!pendingInvite || !devicePair) return;
+  const nm = $('requestNameInput').value.trim();
+  if(!nm){ const rm=$('requestMsg'); if(rm) rm.textContent='Enter a name first, so the group knows who you are.'; return; }
+  if(!devicePair.epub){ const rm=$('requestMsg'); if(rm) rm.textContent='This device cannot receive an encrypted approval. Reload and try again.'; return; }
+  saveName(nm);
+  const ni = $('nameInput'); if (ni) ni.value = displayName;
+  pendingRequest = {circleId:pendingInvite.id, inviterPub:pendingInvite.inviterPub||'', at:Date.now()};
+  try{ localStorage.setItem('safecall.pending.v1', JSON.stringify(pendingRequest)); }catch(e){}
+  try{
+    const payload = {v:1, type:'request', pub:devicePair.pub, epub:devicePair.epub, name:nm, circle:pendingInvite.id, ts:Date.now()};
+    const sig = await SEA.sign(payload, devicePair);
+    await new Promise(res=>{ pendingRef(pendingInvite.id).get('requests').get(devicePair.pub).put({pub:devicePair.pub, epub:devicePair.epub, name:nm, sig, at:payload.ts}, ()=>res()); setTimeout(res, 1500); });
+    subscribePending(pendingInvite.id);
+    const rm = $('requestMsg'); if (rm) rm.textContent='Request sent. Waiting for someone in the group to approve you.';
+    const rb = $('requestBtn'); if (rb) rb.disabled = true;
+  }catch(e){ const rm=$('requestMsg'); if(rm) rm.textContent='Request failed to send. Check the connection and try again.'; }
 }
 function subscribeCircle(){
   if(!circle) return;
-  members.clear(); selectedPub=null; challengePassedFor=null; outstanding=null;
+  members.clear(); pendingRequests.clear(); selectedPub=null;
   circleRef().get('members').map().on(handleMember);
+  circleRef().get('requests').map().on(handleRequest);
   circleRef().get('presence').map().on(handlePresence);
-  circleRef().get('challenges').get(devicePair.pub).on(handleChallenge);
-  circleRef().get('responses').get(devicePair.pub).on(handleResponse);
   announceMember();
   renderMembers();
 }
@@ -558,10 +596,9 @@ function parseInvite(text){
   if(hashAt >= 0) frag = text.slice(hashAt+1);
   try{
     const params = new URLSearchParams(frag);
-    if(params.get('c') && params.get('s')) return {id:params.get('c'), secret:params.get('s')};
+    if(params.get('c') && params.get('i')) return {id:params.get('c'), inviterPub:params.get('i')};
+    if(params.get('c')) return {id:params.get('c'), inviterPub:''};
   }catch(e){}
-  const parts = frag.split('.');
-  if(parts.length===2 && parts[0] && parts[1]) return {id:parts[0], secret:parts[1]};
   return null;
 }
 async function copyText(text, msgEl, msg){
@@ -685,15 +722,45 @@ function openInviteSheet(){
 function closeInviteSheet(){
   const iv = $('inviteSheet'); if (iv) iv.classList.add('hidden');
 }
+function updateNamePrompt(){
+  const np = $('namePrompt'); if (!np) return;
+  let skipped = false;
+  try{ skipped = localStorage.getItem('safecall.nameSkipped.v1') === '1'; }catch(e){}
+  if (circle && !displayName && !skipped) np.classList.remove('hidden');
+  else np.classList.add('hidden');
+}
 async function init(){
   setupPWA();
   try{
     const sb2 = $('settingsBtn'); if (sb2) sb2.addEventListener('click', ()=>{
+      const sni = $('settingsNameInput'); if (sni) sni.value = displayName || '';
       if (circle) {
         const others = Array.from(members.values()).filter(m=>devicePair && m.pub!==devicePair.pub);
         if (!others.length) { openInviteSheet(); return; }
       }
       const sh = $('advancedDetails'); if (sh) sh.classList.remove('hidden');
+    });
+    const psb = $('promptSaveBtn'); if (psb) psb.addEventListener('click', async ()=>{
+      const nm = $('promptNameInput').value.trim();
+      if (!nm) { toast('Enter a name, or tap Skip for now.'); return; }
+      saveName(nm);
+      const ni = $('nameInput'); if (ni) ni.value = displayName;
+      if (circle) await announceMember();
+      updateNamePrompt();
+      toast('Name saved.');
+    });
+    const psk = $('promptSkipBtn'); if (psk) psk.addEventListener('click', ()=>{
+      try{ localStorage.setItem('safecall.nameSkipped.v1', '1'); }catch(e){}
+      updateNamePrompt();
+    });
+    const ssb = $('settingsSaveNameBtn'); if (ssb) ssb.addEventListener('click', async ()=>{
+      const nm = $('settingsNameInput').value.trim();
+      if (!nm) { toast('Enter a name first.'); return; }
+      saveName(nm);
+      const ni = $('nameInput'); if (ni) ni.value = displayName;
+      if (circle) await announceMember();
+      updateNamePrompt();
+      toast('Name saved.');
     });
     const ic = $('inviteCloseBtn'); if (ic) ic.addEventListener('click', closeInviteSheet);
     const iv2 = $('inviteSheet'); if (iv2) iv2.addEventListener('click', (e)=>{ if (e.target === iv2) closeInviteSheet(); });
@@ -707,17 +774,11 @@ async function init(){
   }
   SEA = window.SEA;
   gun = Gun({peers:[PEER], localStorage:false});
-  try{ gun.on('hi', ()=>setPeer(true)); gun.on('bye', ()=>setPeer(false)); }catch(e){}
 
   devicePair = await loadOrCreateDevice();
   displayName = loadName();
   $('nameInput').value = displayName;
 
-  $('saveNameBtn').addEventListener('click', async ()=>{
-    saveName($('nameInput').value.trim());
-      if(circle) await announceMember();
-    toast('Name saved.');
-  });
   $('createBtn').addEventListener('click', async ()=>{
     const _nm = $('nameInput').value.trim(); if (_nm) saveName(_nm);
     const id = b64u(randomBytes(16));
@@ -726,54 +787,50 @@ async function init(){
   });
   $('joinBtn').addEventListener('click', async ()=>{
     const parsed = parseInvite($('joinInput').value);
-    if(!parsed){ $('joinMsg').textContent='Could not read that invite. Paste the full link, or a code like circle.secret'; return; }
+    if(!parsed){ $('joinMsg').textContent='Could not read that invite. Paste the full invite link someone sent you.'; return; }
     $('joinMsg').textContent='';
     const _nm2 = $('nameInput').value.trim(); if (_nm2) saveName(_nm2);
-    await joinCircle(parsed.id, parsed.secret);
+    showRequestScreen(parsed);
+  });
+  $('requestBtn').addEventListener('click', sendJoinRequest);
+  $('requestCancelBtn').addEventListener('click', ()=>{
+    pendingInvite = null; pendingRequest = null;
+    try{ localStorage.removeItem('safecall.pending.v1'); }catch(e){}
+    openWizard();
   });
   $('copyLinkBtn').addEventListener('click', async ()=>{ await copyText(inviteLink(), null, ''); toast('Invite link copied. Send it through a channel you trust.'); const sh = $('advancedDetails'); if (sh) sh.classList.add('hidden'); });
   $('leaveBtn').addEventListener('click', async ()=>{
     await stopAutoSignal();
     try{ localStorage.removeItem('safecall.circle.v1'); }catch(e){}
-    circle=null; members.clear(); selectedPub=null; phraseMatches=false; challengePassedFor=null; outstanding=null;
-    $('circleCard').classList.add('hidden'); $('verifyCard').classList.add('hidden');
+    circle=null; members.clear(); pendingRequests.clear(); selectedPub=null;
+    $('circleCard').classList.add('hidden');
     const adv = $('advancedDetails'); if (adv) adv.classList.add('hidden');
     openWizard();
-    toast('Left the circle on this device. Your old device ID is still listed for others until they reload — make a new trusted group if that matters.');
-  });
-  const cb = $('callBtn'); if (cb) cb.addEventListener('click', async ()=>{
-    if(!circle) return;
-    onCall = !onCall;
-    if(onCall){
-      await sendHeartbeat(true);
-      heartbeatTimer = setInterval(()=>sendHeartbeat(true), 3000);
-    } else {
-      clearInterval(heartbeatTimer);
-      await sendHeartbeat(false);
-    }
-    renderMembers();
-  });
-  const pc2 = $('phraseCheck'); if (pc2) pc2.addEventListener('change', e=>{ phraseMatches = e.target.checked; renderVerdict(); });
-  const chb = $('challengeBtn'); if (chb) chb.addEventListener('click', runChallenge);
-  const yb = $('wordsYesBtn'); if (yb) yb.addEventListener('click', async ()=>{
-    if(!selectedPub){ const cm = $('challengeMsg'); if (cm) cm.textContent='Waiting for someone to join first.'; return; }
-    phraseMatches = true;
-    const pc3 = $('phraseCheck'); if (pc3) pc3.checked = true;
-    renderVerdict();
-    await runChallenge();
-  });
-  const nb = $('wordsNoBtn'); if (nb) nb.addEventListener('click', ()=>{
-    phraseMatches = false;
-    challengePassedFor = null; outstanding = null;
-    const cm = $('challengeMsg'); if (cm) cm.textContent='They said different words — treat this as not verified.';
-    renderVerdict();
+    toast('Left the group on this device.');
   });
 
-  // Auto-join from invite link, otherwise remember the last circle.
+  // Invite link: never auto-joins. It opens the Request screen; an existing
+  // member must approve before any secret is shared. Strip the fragment from
+  // the address bar so copying the page URL never copies an invite.
   const fromHash = parseInvite(location.hash||'');
-  if(fromHash){ await joinCircle(fromHash.id, fromHash.secret); }
-  else {
-    try{ const raw = localStorage.getItem('safecall.circle.v1'); if(raw){ const c=JSON.parse(raw); if(c && c.id && c.secret) await joinCircle(c.id, c.secret); } }catch(e){}
+  try{ if(location.hash) history.replaceState(null, '', location.pathname + location.search); }catch(e){}
+  if(location.hash && !fromHash){
+    $('joinMsg').textContent='Could not read that invite. Ask the sender for a new invite link.';
+  } else if(fromHash){
+    showRequestScreen(fromHash);
+  } else {
+    let restoredPending = null;
+    try{ const rawP = localStorage.getItem('safecall.pending.v1'); if(rawP) restoredPending = JSON.parse(rawP); }catch(e){}
+    if(restoredPending && restoredPending.circleId){
+      pendingRequest = restoredPending;
+      pendingInvite = {id:restoredPending.circleId, inviterPub:restoredPending.inviterPub||''};
+      showRequestScreen(pendingInvite);
+      const rm = $('requestMsg'); if (rm) rm.textContent='Request sent. Waiting for someone in the group to approve you.';
+      const rb = $('requestBtn'); if (rb) rb.disabled = true;
+      subscribePending(restoredPending.circleId);
+    } else {
+      try{ const raw = localStorage.getItem('safecall.circle.v1'); if(raw){ const c=JSON.parse(raw); if(c && c.id && c.secret) await joinCircle(c.id, c.secret); } }catch(e){}
+    }
   }
   setInterval(refreshPhrase, 1000);
   setInterval(renderMembers, 1000);

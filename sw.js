@@ -1,10 +1,10 @@
 /* Stupid Trust service worker.
-   NOTE: bump CACHE (e.g. stupid-trust-v13 -> stupid-trust-v14) whenever
+   NOTE: bump CACHE (e.g. stupid-trust-v17 -> stupid-trust-v18) whenever
    index.html changes, or installed apps may keep
    serving the old cached copy. The navigation handler below is
    network-first, so online users still get fresh HTML, but the
    cache name bump is what retires old offline copies on activate. */
-const CACHE = 'stupid-trust-v13';
+const CACHE = 'stupid-trust-v17';
 const LOCAL_FILES = [
   './index.html',
   './manifest.webmanifest',
