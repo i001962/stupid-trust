@@ -1,7 +1,6 @@
 # Stupid Trust — public bucket upload
 
-Upload the CONTENTS of this folder (not the folder itself, unless you want
-the app at /stupid-trust/) to the root of a public bucket / static host.
+Upload the CONTENTS of this repo to the root of a public bucket / static host.
 
 Files:
 - index.html — the app (open this URL)
