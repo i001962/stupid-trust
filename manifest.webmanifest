@@ -1,0 +1,30 @@
+{
+  "background_color": "#0a0a0b",
+  "description": "Verify it's really them: a shared safety phrase, a live signed signal, and a fresh challenge. No account.",
+  "display": "standalone",
+  "icons": [
+    {
+      "purpose": "any",
+      "sizes": "192x192",
+      "src": "icon-192.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "any",
+      "sizes": "512x512",
+      "src": "icon-512.png",
+      "type": "image/png"
+    },
+    {
+      "purpose": "maskable",
+      "sizes": "512x512",
+      "src": "icon-512.png",
+      "type": "image/png"
+    }
+  ],
+  "name": "Stupid Trust",
+  "scope": "./",
+  "short_name": "Stupid Trust",
+  "start_url": "./index.html",
+  "theme_color": "#0a0a0b"
+}
